@@ -1,10 +1,10 @@
 package com.hibiup.shapeless.examples
 
 import org.scalatest.FlatSpec
+import shapeless._
 
 class Example_1_HList extends FlatSpec{
     "Directly use HList as type" should "" in {
-        import shapeless.{HList, ::, HNil}
 
         /** 类型定义一个 HList */
         val product1: String :: Int :: Boolean :: HNil = "Sunday" :: 1 :: false :: HNil
@@ -28,15 +28,43 @@ class Example_1_HList extends FlatSpec{
         case class Employee(name: String, number: Int, manager: Boolean)
         case class IceCream(name: String, numCherries: Int, inCone: Boolean)
 
-        import shapeless._
-        /** Shapeless提供了一个名为Generic的类型类，它允许我们在具体的ADT和它的范化表示之间来回切换。*/
-        println(Generic[IceCream])
+        /** Shapeless 提供了一个名为 Generic 的类型类，它允许我们在具体的 ADT 和它的范化表示之间来回切换。*/
+        val iceCreamGen = Generic[IceCream]
+        println(Typeable[iceCreamGen.Repr].describe)
 
-        /** 将 case class 转换成 HList */
-        val genericEmployee = Generic[Employee].to(Employee("Dave", 123, false ))  // genericEmployee: String :: Int :: Boolean :: shapeless.HNil = Dave:: 123 :: false :: HNil
-        assert(genericEmployee.isInstanceOf[HList])
+        /** 用 iceCreamGen 将 case class 转换成 HList */
+        val iceCream1 = IceCream("Sundae", 1, false)
+        val genericIceCream1 = iceCreamGen.to(iceCream1)  // genericIceCream: String :: Int :: Boolean :: shapeless.HNil = Sundae :: 1 :: false :: HNil
+        assert(genericIceCream1.isInstanceOf[HList])
 
-        val genericIceCream: HList = Generic[IceCream].to(IceCream("Sundae", 1, false ))  // genericIceCream: String :: Int :: Boolean :: shapeless.HNil = Sundae :: 1 :: false :: HNil
-        assert(genericEmployee.getClass === genericIceCream.getClass)
+        /** 也可以转换回来 */
+        val iceCream2 = iceCreamGen.from(genericIceCream1)
+        assert(iceCream1 === iceCream2)
+
+        /** 直接使用 Generic[T] */
+        val genericEmployee1 = Generic[Employee].to(Employee("Dave", 123, false ))  // genericEmployee: String :: Int :: Boolean :: shapeless.HNil = Dave:: 123 :: false :: HNil
+
+        /** Generic Employee 和 IceCream 具有相同的类型特征（泛化）了 */
+        assert(genericEmployee1.getClass === genericIceCream1.getClass)
+
+        /** 甚至如果两个 Generic 具有相同的表达式（Generic Repr），我们可以将它们互相兑换！ */
+        val genericEmployee2 = Generic[Employee].from(genericIceCream1)
+        println(genericEmployee2)
+        assert(genericEmployee2.isInstanceOf[Employee])    // 一个 IceCream 变成了 Employee!!
+    }
+
+    "Scala Tuple is a Product" should "be compatible to Shapeless Generic" in {
+        /** 获得一个 Tuple */
+        val t1 = ("Hello", 123, true)
+
+        /** 定义一个具有相同元素结构的 Generic 实例 */
+        val tupleGen = Generic[(String, Int, Boolean)]
+
+        /** 泛化后得到 HList */
+        val genericTuple = tupleGen.to(t1)
+        assert(genericTuple === "Hello":: 123::true::HNil)
+
+        /** 将泛化后的 Tuple 还原回来得到的依然是一个 Tuple */
+        assert(tupleGen.from(genericTuple) === t1)
     }
 }
