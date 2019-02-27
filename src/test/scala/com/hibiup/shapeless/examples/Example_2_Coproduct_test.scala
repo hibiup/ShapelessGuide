@@ -50,14 +50,14 @@ class Example_2_Coproduct_test extends FlatSpec{
         final case class Circle(radius: Double) extends Shape
 
         /** Shapeless 利用 Macro 在编译阶段找到所有子类，并依此编译出 Coproduct */
-        val gen = Generic[Shape]       // Rectangle :+: Circle :+: CNil
+        val gen = Generic[Shape]       // Circle :+: Rectangle :+: CNil
         println(Typeable[gen.Repr].describe)
 
         val rec = gen.to(Rectangle(3.0, 4.0))
-        println(rec)        // Inr(Inl(Rectangle(3.0,4.0)))  Inr 相当于 Right,但是由于 :+: 不能直接获得 Right, 因此要先获得 Inl(Rectangle(3.0,4.0)
+        println(rec)        // Inr(Inl(Rectangle(3.0,4.0)))
 
         val circle = gen.to(Circle(1.0))
-        println(circle)     // Inl(Circle(1.0))              Inl 相当于 Left
+        println(circle)     // Inl(Circle(1.0))
     }
 }
 
