@@ -20,6 +20,10 @@ class Example_2_Coproduct_test extends FlatSpec{
         val green: Light = Inr(Inr(Inl(Green())))
         println(green)
 
+        /** 同理, 如果值因处于中间位, 要做偏移后再赋予. */
+        val amber: Light = Inr(Inl(Amber()))
+        println(amber)
+
         /**
           * 因为计算以嵌套方式执行,所以获得的 type 在赋值得时候也要注意值的计算顺序. 比如 Green 在最右边第三个元素,因此要赋予: Inr(Inr(Inl(Green())))
           * 以下都会得到类型错误:
@@ -29,15 +33,18 @@ class Example_2_Coproduct_test extends FlatSpec{
                 val green: Light = Inl(Inr(Inl(Green())))
                 val green: Light = Inl(Inl(Inl(Green())))
 
-          * 但是可以用括弧改变运算顺序,例如以下定义:
-          * Light1 相当于 Red.:+:(Green.:+:(Amber)): [_,[Green,_]]
+          * 除非使用自动类型匹配, 但是匹配出的 amber 也就不是 Light 类型了, 所以不会出错.
           * */
-        val amber: Light = Inr(Inl(Amber()))    // 同理, 如果值因处于中间位, 要做偏移后再赋予.
-        println(amber)
-
-        /** 除非使用自动类型匹配, 但是匹配出的 amber 也就不是 Light 类型了, 所以不会出错. */
         val amber1 = Inr(Inl(Inl(Amber())))
-        println(amber1)
+        println(amber1)   // (存疑：如何取得 amber1 的 Repr？)
+        //println(Typeable[amber1.Repr].describe)
+
+        /** 以下编译不通过
+          * Error:(41, 27) type arguments [Amber,Green] do not conform to trait :+:'s type parameter bounds [+H,+T <: shapeless.Coproduct]
+          *
+          * type Light1 = (Red :+: Amber :+: Green) :+: CNil
+          * val amber2: Light1 = Inr(Inl(Inl(Amber())))
+        */
     }
 
     "Use Generic with Coporduct" should "" in {
@@ -49,15 +56,15 @@ class Example_2_Coproduct_test extends FlatSpec{
         final case class Rectangle(width: Double, height: Double) extends Shape
         final case class Circle(radius: Double) extends Shape
 
-        /** Shapeless 利用 Macro 在编译阶段找到所有子类，并依此编译出 Coproduct */
+        /** Shapeless 利用 Macro 在编译阶段找到所有子类，并依此编译出 Coproduct （存疑：貌似按照字母排序定义顺序？） */
         val gen = Generic[Shape]       // Circle :+: Rectangle :+: CNil
         println(Typeable[gen.Repr].describe)
 
         val rec = gen.to(Rectangle(3.0, 4.0))
         println(rec)        // Inr(Inl(Rectangle(3.0,4.0)))
 
-        val circle = gen.to(Circle(1.0))
-        println(circle)     // Inl(Circle(1.0))
+        val circle1 = gen.to(Circle(1.0))
+        println(circle1)     // Inl(Circle(1.0))
     }
 }
 
