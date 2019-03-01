@@ -3,7 +3,7 @@ package com.hibiup.shapeless.examples
 import org.scalatest.FlatSpec
 import shapeless._
 
-class Example_1_HList extends FlatSpec{
+class Example_1_Product extends FlatSpec{
     "Directly use HList as type" should "" in {
 
         /** 类型定义一个 HList */

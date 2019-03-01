@@ -2,17 +2,21 @@ package com.hibiup.shapeless.examples
 
 import org.scalatest.FlatSpec
 
-/** 定义 ADT */
-case class Employee(name: String, number: Int, manager: Boolean)
-case class IceCream(name: String, numCherries: Int, inCone: Boolean)
+object common {
+    /** 定义 ADT */
+    case class Employee(name: String, number: Int, manager: Boolean)
+    case class IceCream(name: String, numCherries: Int, inCone: Boolean)
 
-/** Type class：分离 ADT 方法 */
-trait CsvEncoder[A] {
-    def encode(value: A): List[String]
+    /** Type class：分离 ADT 方法 */
+    trait CsvEncoder[A] {
+        def encode(value: A): List[String]
+    }
 }
 
 /** （p21） 传统的实现 type class 的方式 */
 object Traditional_Style {
+    import common._
+
     /** 实现 type class */
     implicit val employeeEncoder: CsvEncoder[Employee] =
         (e: Employee) => List(
@@ -32,6 +36,8 @@ object Traditional_Style {
 /** (p25) Shapeless 提供的标准解决方案是定义一个伴随类来包括这些工作，并且规定这个伴随类必须实现 Summoner
   * 和 instance 这两个方法。 其实和传统方法并没有什么区别，只是多了两个接口。*/
 object Commonly_Idiomatic_Style_Companion_Object {
+     import common._
+
     // "Summoner" method
     def apply[A](implicit enc: CsvEncoder[A]): CsvEncoder[A] = enc
 
@@ -60,6 +66,7 @@ object Commonly_Idiomatic_Style_Companion_Object {
 
 class Example_3_TypeClass extends FlatSpec {
     "General style" should "" in {
+        import common._
         import Traditional_Style._
 
         /** */
@@ -85,7 +92,8 @@ class Example_3_TypeClass extends FlatSpec {
 
     "Shapeless Style" should "" in {
         /** 引入 Object 中定义的 Encoders */
-        import Commonly_Idiomatic_Style_Companion_Object.{employeeEncoder, iceCreamEncoder}
+        import common._
+        import Commonly_Idiomatic_Style_Companion_Object._
 
         def writeCsv[A](values: List[A])(implicit e: CsvEncoder[A]): String = {
             /** 通过“召唤术”将它设置为当前环境中的 materializer （在本例中，这条其实是多余的）*/

@@ -1,9 +1,9 @@
 package com.hibiup.shapeless.examples
 
 import org.scalatest.FlatSpec
-import shapeless._
+import shapeless.{CNil, Inl, Inr, Typeable, :+:}
 
-class Example_2_Coproduct_test extends FlatSpec{
+class Example_2_Coproduct extends FlatSpec{
     "Coproduct :+: option" should "" in {
         case class Red()
         case class Amber()
